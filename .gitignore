@@ -126,3 +126,5 @@ dmypy.json
 # User settings
 checkout/
 trashes/
+
+.DS_Store
