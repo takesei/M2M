@@ -71,6 +71,8 @@ if os.path.exists(checkout_dir) is False:
 n_classes = 3
 device = torch.device("cuda" if use_gpu else "cpu")
 model = torch.hub.load("pytorch/vision", "shufflenet_v2_x1_0", pretrained=True)
+# model = models.resnet18(pretrained=True).to(device)
+# model = models.shufflenet_v2_x0_5(pretrained=False).to(device)
 n_filters = model.fc.in_features
 model.fc = nn.Linear(n_filters, n_classes)
 
@@ -145,11 +147,58 @@ def show_image(image):
 
 image_class = {0: "GlassBottle", 1: "Can", 2: "PET"}
 
-# Process Image
-image = process_image(f"images/{sys.argv[1]}")
-# Give image to model to predict output
-top_prob, top_class = predict(image.to(device), model)
-# Show the image
-show_image(image)
-# Print the results
-print(f"The model is {top_prob*100}% certain that the image has a predicted class of {image_class[top_class]}")
+import RPi.GPIO as GPIO
+import time
+
+# Pin Definitions
+
+def move(pos):
+    pos = 11
+    neg = 13
+    rot = 15
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup((pos, neg, rot), GPIO.OUT)
+    GPIO.output(pos, GPIO.HIGH)
+    time.sleep(0.22*pos)
+    GPIO.output(pos, GPIO.LOW)
+    GPIO.cleanup()
+
+import cv2
+import os
+
+DEVICE_NUM = 0
+DIR_PATH = "images"
+
+def process(image_dir):
+    image = process_image(f"{image_dir}")
+    top_prob, top_class = predict(image.to(device), model)
+    print(f"The model is {top_prob*100}% certain that the image has a predicted class of {image_class[top_class]}")
+    return top_prob, top_class
+
+def save_frame_camera_key(device_num, dir_path, name, ext="jpg", delay=1, window_name="frame"):
+    cap = cv2.VideoCapture(device_num)
+
+    assert cap.isOpened(), f"Video Device dev/video{device_num} Not Found"
+
+    os.makedirs(dir_path, exist_ok=True)
+    base_path = os.path.join(dir_path, name)
+
+    n = 0
+
+    while True:
+        ret, frame = cap.read()
+        cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+        cv2.imshow(window_name, frame)
+        key = cv2.waitKey(delay) & 0xFF
+        if key == ord("c"):
+            cv2.imwrite(f"{base_path}_{n}.{ext}", frame)
+            prob, top_class = process(f"{base_path}_{n}.{ext}")
+            move(top_class)
+            n+=1
+        elif key==ord("q"):
+            break
+    cv2.destroyWindow(window_name)
+
+
+if __name__ == "__main__":
+    save_frame_camera_key(DEVICE_NUM, DIR_PATH, "cap")
