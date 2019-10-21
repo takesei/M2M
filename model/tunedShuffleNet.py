@@ -21,17 +21,17 @@ import os
 import time
 
 
-# In[11]:
+# In[2]:
 
 
 # Define save/load func
 def save_checkpoint(path, epoch, model):
-    save_path = os.path.join(path, f"d_shufflenet_epoch_{epoch}.pkl")
+    save_path = os.path.join(path, f"shufflenet_epoch_{epoch}.pkl")
     torch.save(model.state_dict(), save_path)
     print(f"Checkpoint saved to {save_path}")
 
 def load_checkpoint(model_dir, epoch, model):
-    load_path = os.path.join(model_dir, f"d_shufflenet_epoch_{epoch}.pkl")
+    load_path = os.path.join(model_dir, f"shufflenet_epoch_{epoch}.pkl")
     checkpoint = torch.load(load_path)
     model.load_state_dict(checkpoint)
     print(f"Checkpoint loaded from {load_path}")
@@ -72,8 +72,7 @@ if os.path.exists(checkout_dir) is False:
 # Model
 n_classes = 3
 device = torch.device("cuda" if use_gpu else "cpu")
-model = models.shufflenet_v2_x0_5(pretrained=True).to(device)
-
+model = torch.hub.load("pytorch/vision", "shufflenet_v2_x1_0", pretrained=True)
 n_filters = model.fc.in_features
 model.fc = nn.Linear(n_filters, n_classes)
 
@@ -193,18 +192,18 @@ def evaluation(model_dir, epoch, model, test_loader):
     print(f"Accuracy: {accuracy}, confusion matrix: \n{confusion_mat}")
 
 
-# In[13]:
+# In[9]:
 
 
 # If you want to restart learning, set model_load as True
-model_load = False
-epoch_start = 0
+model_load = True
+epoch_start = 10
 
 if model_load:
     load_checkpoint(checkout_dir, epoch_start, model)
 
 
-# In[15]:
+# In[10]:
 
 
 # Main
@@ -216,7 +215,8 @@ if __name__ == "__main__":
     train_acc_log = []
     test_acc_log = []
 
-    for epoch in range(epoch_start, epochs + 1):
+    #for epoch in range(epoch_start, epochs + 1):
+    for epoch in range(0):
         train_loss, train_acc = train(model, train_loader, epoch)
         test_loss, test_acc = test(model, test_loader, epoch)
         train_loss_log.append(train_loss)

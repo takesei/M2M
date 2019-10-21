@@ -21,21 +21,20 @@ import os
 import time
 
 
-# In[2]:
+# In[11]:
 
 
 # Define save/load func
 def save_checkpoint(path, epoch, model):
-    save_path = os.path.join(path, f"shufflenet_epoch_{epoch}.pkl")
+    save_path = os.path.join(path, f"d_shufflenet_epoch_{epoch}.pkl")
     torch.save(model.state_dict(), save_path)
     print(f"Checkpoint saved to {save_path}")
 
 def load_checkpoint(model_dir, epoch, model):
-    load_path = os.path.join(model_dir, f"shufflenet_epoch_{epoch}.pkl")
+    load_path = os.path.join(model_dir, f"d_shufflenet_epoch_{epoch}.pkl")
     checkpoint = torch.load(load_path)
     model.load_state_dict(checkpoint)
     print(f"Checkpoint loaded from {load_path}")
-
 
 # In[3]:
 
@@ -49,8 +48,10 @@ torch.cuda.manual_seed(723)
 
 # Networks
 batchsize = 32
-epochs = 10
-epoch_start = 1
+epochs = 50
+epoch_start = 20
+model_load = False if epoch_start == 0 else True
+
 
 # GPU
 use_gpu = torch.cuda.is_available()
@@ -72,8 +73,8 @@ if os.path.exists(checkout_dir) is False:
 # Model
 n_classes = 3
 device = torch.device("cuda" if use_gpu else "cpu")
-# model = models.shufflenet_v2_x0_5(pretrained=True).to(device)
-model = torch.hub.load("pytorch/vision", "shufflenet_v2_x1_0", pretrained=True)
+model = models.shufflenet_v2_x0_5(pretrained=False).to(device)
+
 n_filters = model.fc.in_features
 model.fc = nn.Linear(n_filters, n_classes)
 
@@ -193,18 +194,15 @@ def evaluation(model_dir, epoch, model, test_loader):
     print(f"Accuracy: {accuracy}, confusion matrix: \n{confusion_mat}")
 
 
-# In[9]:
+# In[13]:
 
 
 # If you want to restart learning, set model_load as True
-model_load = False
-epoch_start = 0
-
 if model_load:
     load_checkpoint(checkout_dir, epoch_start, model)
 
 
-# In[10]:
+# In[15]:
 
 
 # Main
