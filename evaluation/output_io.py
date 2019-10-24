@@ -10,6 +10,7 @@ logger.setLevel(DEBUG)
 logger.addHandler(handler)
 logger.propagate = False
 
+
 class Conveyer():
     """
     Control GPIO aounrd Belt Conveyer
@@ -26,6 +27,7 @@ class Conveyer():
       Num indicating method for GPIO
 
     """
+
     def __init__(self, pos, neg, conv, nconv, mode=GPIO.BOARD):
         GPIO.setmode(mode)
         GPIO.setup((pos, neg, conv, nconv), GPIO.OUT)
@@ -44,7 +46,7 @@ class Conveyer():
         time.sleep(sec)
         GPIO.output(self.neg, GPIO.LOW)
         return self
-    
+
     def convey(self, position, sec=0.75):
         logger.debug(f"Convey Stuff for {position}")
         assert 1 <= position <= 3, "OUT OF RANGE: range of pos is [0,2]"
@@ -53,7 +55,7 @@ class Conveyer():
         GPIO.output(self.conv, GPIO.LOW)
         time.sleep(0.5)
         return self
-    
+
     def __del__(self):
         GPIO.cleanup()
 

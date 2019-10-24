@@ -30,6 +30,7 @@ def save_checkpoint(path, epoch, model):
     torch.save(model.state_dict(), save_path)
     print(f"Checkpoint saved to {save_path}")
 
+
 def load_checkpoint(model_dir, epoch, model):
     load_path = os.path.join(model_dir, f"mobilenet_epoch_{epoch}.pkl")
     checkpoint = torch.load(load_path)
@@ -58,7 +59,7 @@ if use_gpu:
     print("CUDA detected")
     cudnn.benchmark = True
     cudnn.deterministic = True
-    
+
 # PATH
 checkout_dir = "./checkout"
 if os.path.exists(checkout_dir) is False:
@@ -82,7 +83,7 @@ if use_gpu:
 
 # Optimizer
 optimizer = optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, weight_decay=5e-4)
-use_scheduler= False
+use_scheduler = False
 if use_scheduler:
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 
@@ -128,7 +129,7 @@ def train(model, train_loader, epoch):
     train_loss = 0
     correct = 0
     total = 0
-    
+
     if use_scheduler:
         scheduler.step()
     for batch_idx, (image, label) in enumerate(train_loader):
@@ -224,4 +225,3 @@ if __name__ == "__main__":
         test_acc_log.append(test_acc)
         save_checkpoint(checkout_dir, epoch, model)
     evaluation(checkout_dir, epochs, model, test_loader)
-
